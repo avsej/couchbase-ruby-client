@@ -17,8 +17,8 @@
 
 #include "couchbase_ext.h"
 
-    static VALUE
-trigger_on_connect_callback(VALUE self)
+    VALUE
+cb_bucket__trigger_on_connect(VALUE self)
 {
     struct cb_bucket_st *bucket = DATA_PTR(self);
     VALUE on_connect_proc = bucket->on_connect_proc;
@@ -35,6 +35,17 @@ trigger_on_connect_callback(VALUE self)
 }
 
     static void
+cb_bucket_schedule_on_connect(struct cb_bucket_st *bucket)
+{
+    if (bucket->engine == cb_sym_eventmachine) {
+        VALUE _on_connect = rb_obj_method(bucket->self, cb_sym__trigger_on_connect);
+        rb_funcall_1(em_m, cb_id_next_tick, _on_connect);
+    } else {
+        (void)cb_bucket__trigger_on_connect(bucket->self);
+    }
+}
+
+    static void
 error_callback(lcb_t handle, lcb_error_t error, const char *errinfo)
 {
     struct cb_bucket_st *bucket = (struct cb_bucket_st *)lcb_get_cookie(handle);
@@ -42,7 +53,7 @@ error_callback(lcb_t handle, lcb_error_t error, const char *errinfo)
     lcb_breakout(handle);
     bucket->exception = cb_check_error(error, errinfo, Qnil);
     if (bucket->async && !bucket->connected) {
-        (void)trigger_on_connect_callback(bucket->self);
+        cb_bucket_schedule_on_connect(bucket);
     }
 }
 
@@ -53,7 +64,7 @@ configuration_callback(lcb_t handle, lcb_configuration_t config)
 
     if (config == LCB_CONFIGURATION_NEW) {
         bucket->connected = 1;
-        (void)trigger_on_connect_callback(bucket->self);
+        cb_bucket_schedule_on_connect(bucket);
     }
 }
 
@@ -256,6 +267,8 @@ do_scan_connection_options(struct cb_bucket_st *bucket, int argc, VALUE *argv)
                     bucket->engine = cb_sym_libev;
                 } else if (arg == cb_sym_libevent) {
                     bucket->engine = cb_sym_libevent;
+                } else if (arg == cb_sym_eventmachine) {
+                    bucket->engine = cb_sym_eventmachine;
                 } else {
                     VALUE ins = rb_funcall(arg, rb_intern("inspect"), 0);
                     rb_raise(rb_eArgError, "Couchbase: unknown engine %s", RSTRING_PTR(ins));
@@ -276,6 +289,17 @@ do_scan_connection_options(struct cb_bucket_st *bucket, int argc, VALUE *argv)
     bucket->authority = rb_str_dup(bucket->hostname);
     rb_str_cat2(bucket->authority, port_s);
     rb_str_freeze(bucket->authority);
+}
+
+    static VALUE
+em_disconnect_block(VALUE arg, VALUE self)
+{
+    struct cb_bucket_st *bucket = DATA_PTR(self);
+    if (bucket->handle) {
+        return cb_bucket_disconnect(self);
+    }
+    (void)arg;
+    return Qnil;
 }
 
     static void
@@ -301,6 +325,11 @@ do_connect(struct cb_bucket_st *bucket)
             ciops.v.v0.type = LCB_IO_OPS_LIBEVENT;
         } else if (bucket->engine == cb_sym_libev) {
             ciops.v.v0.type = LCB_IO_OPS_LIBEV;
+        } else if (bucket->engine == cb_sym_eventmachine) {
+            ciops.version = 1;
+            ciops.v.v1.sofile = NULL;
+            ciops.v.v1.symbol = "cb_create_ruby_em_io_opts";
+            ciops.v.v1.cookie = bucket;
         } else {
 #ifdef _WIN32
             ciops.v.v0.type = LCB_IO_OPS_DEFAULT;
@@ -358,6 +387,10 @@ do_connect(struct cb_bucket_st *bucket)
         rb_exc_raise(cb_check_error(err, "failed to connect libcouchbase instance to server", Qnil));
     }
     bucket->exception = Qnil;
+    if (bucket->engine == cb_sym_eventmachine && !bucket->async_disconnect_hook_set) {
+        bucket->async_disconnect_hook_set = 1;
+        rb_block_call(em_m, cb_id_add_shutdown_hook, 0, NULL, em_disconnect_block, bucket->self);
+    }
     if (!bucket->async) {
         lcb_wait(bucket->handle);
         if (bucket->exception != Qnil) {
@@ -442,9 +475,10 @@ cb_bucket_alloc(VALUE klass)
  *     {Bucket#incr} and {Bucket#decr}).
  *   @option options [Symbol] :engine (:default) the IO engine to use
  *     Currently following engines are supported:
- *     :default  :: Built-in engine (multi-thread friendly)
- *     :libevent :: libevent IO plugin from libcouchbase (optional)
- *     :libev    :: libev IO plugin from libcouchbase (optional)
+ *     :default      :: Built-in engine (multi-thread friendly)
+ *     :libevent     :: libevent IO plugin from libcouchbase (optional)
+ *     :libev        :: libev IO plugin from libcouchbase (optional)
+ *     :eventmachine :: EventMachine plugin (builtin, but requires EM gem)
  *   @option options [true, false] :async (false) If true, the
  *     connection instance will be considered always asynchronous and
  *     IO interaction will be occured only when {Couchbase::Bucket#run}
@@ -505,6 +539,7 @@ cb_bucket_init(int argc, VALUE *argv, VALUE self)
     bucket->destroying = 0;
     bucket->connected = 0;
     bucket->on_connect_proc = Qnil;
+    bucket->async_disconnect_hook_set = 0;
 
     do_scan_connection_options(bucket, argc, argv);
     do_connect(bucket);
@@ -555,6 +590,7 @@ cb_bucket_init_copy(VALUE copy, VALUE orig)
     copy_b->environment = orig_b->environment;
     copy_b->timeout = orig_b->timeout;
     copy_b->exception = Qnil;
+    copy_b->async_disconnect_hook_set = 0;
     if (orig_b->on_error_proc != Qnil) {
         copy_b->on_error_proc = rb_funcall(orig_b->on_error_proc, cb_id_dup, 0);
     }
@@ -748,7 +784,7 @@ cb_bucket_on_connect_set(VALUE self, VALUE val)
     if (rb_respond_to(val, cb_id_call)) {
         bucket->on_connect_proc = val;
         if (bucket->connected && bucket->running) {
-            trigger_on_connect_callback(self);
+            cb_bucket_schedule_on_connect(bucket);
         }
     } else {
         bucket->on_connect_proc = Qnil;
@@ -1258,5 +1294,3 @@ cb_bucket_disconnect(VALUE self)
         return Qfalse;
     }
 }
-
-

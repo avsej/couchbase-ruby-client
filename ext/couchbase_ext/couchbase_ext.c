@@ -30,8 +30,10 @@ VALUE cb_mError;
 VALUE cb_mMarshal;
 VALUE cb_mMultiJson;
 VALUE cb_mURI;
+VALUE em_m;
 
 /* Symbols */
+ID cb_sym__trigger_on_connect;
 ID cb_sym_add;
 ID cb_sym_append;
 ID cb_sym_assemble_hash;
@@ -43,6 +45,7 @@ ID cb_sym_chunked;
 ID cb_sym_cluster;
 ID cb_sym_connect;
 ID cb_sym_content_type;
+ID cb_sym_connect;
 ID cb_sym_create;
 ID cb_sym_decrement;
 ID cb_sym_default;
@@ -57,6 +60,7 @@ ID cb_sym_development;
 ID cb_sym_document;
 ID cb_sym_engine;
 ID cb_sym_environment;
+ID cb_sym_eventmachine;
 ID cb_sym_extended;
 ID cb_sym_flags;
 ID cb_sym_format;
@@ -101,6 +105,7 @@ ID cb_sym_unlock;
 ID cb_sym_username;
 ID cb_sym_version;
 ID cb_sym_view;
+ID cb_id_add_shutdown_hook;
 ID cb_id_arity;
 ID cb_id_call;
 ID cb_id_delete;
@@ -126,6 +131,7 @@ ID cb_id_iv_time_to_replicate;
 ID cb_id_iv_value;
 ID cb_id_load;
 ID cb_id_match;
+ID cb_id_next_tick;
 ID cb_id_observe_and_wait;
 ID cb_id_parse;
 ID cb_id_parse_body_bang;
@@ -192,6 +198,9 @@ cb_intern_string(VALUE ar, const char *str)
 Init_couchbase_ext(void)
 {
     VALUE interned;
+
+    /* just a holder for EventMachine module */
+    em_m = 0;
 
     cb_mMultiJson = rb_const_get(rb_cObject, rb_intern("MultiJson"));
     cb_mURI = rb_const_get(rb_cObject, rb_intern("URI"));
@@ -554,6 +563,7 @@ Init_couchbase_ext(void)
      * @return [String]
      */
     rb_define_attr(cb_cResult, "value", 1, 0);
+    rb_define_alias(cb_cResult, "bucket", "value");
     cb_id_iv_value = rb_intern("@value");
     /* Document-method: cas
      *
@@ -886,10 +896,31 @@ Init_couchbase_ext(void)
      *     end
      *   end
      *
+     * @example
+     *   EM.run do
+     *     pool = Pool.new
+     *     connection = Couchbase.new(:engine => :eventmachine, :async => true)
+     *     connection.on_connect do |result|
+     *       unless result.success?
+     *         $stderr.puts "Could not connect to CouchBase #{result.error}"
+     *       else
+     *         pool.add result.bucket
+     *       end
+     *     end
+     *   end
+     *
+     * @example
+     *   EM.run do
+     *     pool = Pool.new
+     *     connection = Couchbase.new(:engine => :eventmachine, :async => true)
+     *     connection.on_connect = pool.method(:couchbase_connect_callback)
+     *   end
+     *
      * @return [Proc] the effective callback */
     /* rb_define_attr(cb_cBucket, "on_connect", 1, 1); */
     rb_define_method(cb_cBucket, "on_connect", cb_bucket_on_connect_get, 0);
     rb_define_method(cb_cBucket, "on_connect=", cb_bucket_on_connect_set, 1);
+    rb_define_private_method(cb_cBucket, "_trigger_on_connect", cb_bucket__trigger_on_connect, 0);
 
     /* Document-method: url
      *
@@ -1048,6 +1079,7 @@ Init_couchbase_ext(void)
     rb_define_method(cb_cTimer, "cancel", cb_timer_cancel, 0);
 
     /* Define cb_symbols */
+    cb_id_add_shutdown_hook = rb_intern("add_shutdown_hook");
     cb_id_arity = rb_intern("arity");
     cb_id_call = rb_intern("call");
     cb_id_delete = rb_intern("delete");
@@ -1058,6 +1090,7 @@ Init_couchbase_ext(void)
     cb_id_host = rb_intern("host");
     cb_id_load = rb_intern("load");
     cb_id_match = rb_intern("match");
+    cb_id_next_tick = rb_intern("next_tick");
     cb_id_observe_and_wait = rb_intern("observe_and_wait");
     cb_id_parse = rb_intern("parse");
     cb_id_parse_body_bang = rb_intern("parse_body!");
@@ -1070,6 +1103,7 @@ Init_couchbase_ext(void)
     cb_id_user = rb_intern("user");
     cb_id_verify_observe_options = rb_intern("verify_observe_options");
 
+    cb_sym__trigger_on_connect = ID2SYM(rb_intern("_trigger_on_connect"));
     cb_sym_add = ID2SYM(rb_intern("add"));
     cb_sym_append = ID2SYM(rb_intern("append"));
     cb_sym_assemble_hash = ID2SYM(rb_intern("assemble_hash"));
@@ -1081,6 +1115,7 @@ Init_couchbase_ext(void)
     cb_sym_cluster = ID2SYM(rb_intern("cluster"));
     cb_sym_connect = ID2SYM(rb_intern("connect"));
     cb_sym_content_type = ID2SYM(rb_intern("content_type"));
+    cb_sym_connect = ID2SYM(rb_intern("connect"));
     cb_sym_create = ID2SYM(rb_intern("create"));
     cb_sym_decrement = ID2SYM(rb_intern("decrement"));
     cb_sym_default = ID2SYM(rb_intern("default"));
@@ -1094,6 +1129,7 @@ Init_couchbase_ext(void)
     cb_sym_document = ID2SYM(rb_intern("document"));
     cb_sym_engine = ID2SYM(rb_intern("engine"));
     cb_sym_environment = ID2SYM(rb_intern("environment"));
+    cb_sym_eventmachine = ID2SYM(rb_intern("eventmachine"));
     cb_sym_extended = ID2SYM(rb_intern("extended"));
     cb_sym_flags = ID2SYM(rb_intern("flags"));
     cb_sym_format = ID2SYM(rb_intern("format"));

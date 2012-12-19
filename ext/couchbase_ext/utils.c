@@ -561,3 +561,25 @@ rb_hash_lookup2(VALUE hash, VALUE key, VALUE dflt)
     return dflt;
 }
 #endif
+
+#ifndef HAVE_RB_BLOCK_CALL
+struct rb_iterate_args {
+    VALUE obj;
+    ID meth;
+    int argc;
+    VALUE *argv;
+};
+
+    VALUE
+rb_iterate_func(struct rb_iterate_args *args)
+{
+    return rb_funcall2(args->obj, args->meth, args->argc, args->argv);
+}
+
+    VALUE
+rb_block_call(VALUE obj, ID meth, int argc, VALUE *argv, VALUE (*block)(), VALUE data2)
+{
+    struct rb_iterate_args args = { obj, meth, argc, argv };
+    rb_iterate(rb_iterate_func, &args, block, data2);
+}
+#endif
