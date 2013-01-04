@@ -19,6 +19,21 @@ bugfixes. Do not forget to update this doc in every important patch.
 * [critical] RCBC-104 Data corruption on intensive store operations.
   The issue could also lead to segfaults.
 
+* [major] Allow to use Bucket instance in completely asynchronous
+  environment like this, without blocking on connect:
+
+         conn = Couchbase.new(:async => true)
+         conn.run do
+           conn.on_connect do |res|
+             if res.success?
+               #
+               # schedule async requests
+               #
+             end
+           end
+         end
+
+
 ## 1.2.0 (2012-12-12)
 
  30 files changed, 2079 insertions(+), 662 deletions(-)

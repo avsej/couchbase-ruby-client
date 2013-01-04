@@ -35,11 +35,13 @@ VALUE cb_mURI;
 ID cb_sym_add;
 ID cb_sym_append;
 ID cb_sym_assemble_hash;
+ID cb_sym_async;
 ID cb_sym_body;
 ID cb_sym_bucket;
 ID cb_sym_cas;
 ID cb_sym_chunked;
 ID cb_sym_cluster;
+ID cb_sym_connect;
 ID cb_sym_content_type;
 ID cb_sym_create;
 ID cb_sym_decrement;
@@ -833,26 +835,61 @@ Init_couchbase_ext(void)
      *
      * This callback is using to deliver exceptions in asynchronous mode.
      *
-     * @yieldparam [Symbol] op The operation caused the error
-     * @yieldparam [String] key The key which cause the error or +nil+
      * @yieldparam [Exception] exc The exception instance
      *
      * @example Using lambda syntax
-     *   connection = Couchbase.new(:async => true)
-     *   connection.on_error = lambda {|op, key, exc| ... }
+     *   connection = Couchbase.connect
+     *   connection.on_error = lambda {|exc| ... }
      *   connection.run do |conn|
      *     conn.set("foo", "bar")
      *   end
      *
      * @example Using block syntax
-     *   connection = Couchbase.new(:async => true)
-     *   connection.on_error {|op, key, exc| ... }
-     *   ...
+     *   connection = Couchbase.connect
+     *   connection.on_error {|exc| ... }
+     *   connection.run do |conn|
+     *     conn.set("foo", "bar")
+     *   end
      *
      * @return [Proc] the effective callback */
     /* rb_define_attr(cb_cBucket, "on_error", 1, 1); */
     rb_define_method(cb_cBucket, "on_error", cb_bucket_on_error_get, 0);
     rb_define_method(cb_cBucket, "on_error=", cb_bucket_on_error_set, 1);
+
+    /* Document-method: on_connect
+     * Connection callback for asynchronous mode.
+     *
+     * @since 1.3.0
+     *
+     * This callback used to notify that bucket instance is connected
+     * and ready to handle requests in asynchronous mode.
+     *
+     * @yieldparam [Result] result The result instance, with valid
+     *   properties +#error+, +#success?+, +#operation+ and +#bucket+
+     *
+     * @example Using lambda syntax
+     *   connection = Couchbase.new(:async => true)
+     *   connection.on_connect = lambda do |ret|
+     *     if ret.success?
+     *       conn.set("foo", "bar")
+     *     end
+     *   end
+     *   connection.run
+     *
+     * @example Using block syntax
+     *   connection = Couchbase.new(:async => true)
+     *   connection.run do |conn|
+     *     connection.on_connect do |ret|
+     *       if ret.success?
+     *         conn.set("foo", "bar")
+     *       end
+     *     end
+     *   end
+     *
+     * @return [Proc] the effective callback */
+    /* rb_define_attr(cb_cBucket, "on_connect", 1, 1); */
+    rb_define_method(cb_cBucket, "on_connect", cb_bucket_on_connect_get, 0);
+    rb_define_method(cb_cBucket, "on_connect=", cb_bucket_on_connect_set, 1);
 
     /* Document-method: url
      *
@@ -1036,11 +1073,13 @@ Init_couchbase_ext(void)
     cb_sym_add = ID2SYM(rb_intern("add"));
     cb_sym_append = ID2SYM(rb_intern("append"));
     cb_sym_assemble_hash = ID2SYM(rb_intern("assemble_hash"));
+    cb_sym_async = ID2SYM(rb_intern("async"));
     cb_sym_body = ID2SYM(rb_intern("body"));
     cb_sym_bucket = ID2SYM(rb_intern("bucket"));
     cb_sym_cas = ID2SYM(rb_intern("cas"));
     cb_sym_chunked = ID2SYM(rb_intern("chunked"));
     cb_sym_cluster = ID2SYM(rb_intern("cluster"));
+    cb_sym_connect = ID2SYM(rb_intern("connect"));
     cb_sym_content_type = ID2SYM(rb_intern("content_type"));
     cb_sym_create = ID2SYM(rb_intern("create"));
     cb_sym_decrement = ID2SYM(rb_intern("decrement"));
