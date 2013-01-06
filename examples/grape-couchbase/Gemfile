@@ -1,0 +1,6 @@
+source :rubygems
+
+gem 'grape'
+
+# couchbase gem dependencies
+gem 'yaji'
