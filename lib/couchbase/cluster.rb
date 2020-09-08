@@ -64,25 +64,25 @@ module Couchbase
     # @return [QueryResult]
     def query(statement, options = QueryOptions.new)
       resp = @backend.document_query(statement, {
-        timeout: options.timeout,
-        adhoc: options.adhoc,
-        client_context_id: options.client_context_id,
-        max_parallelism: options.max_parallelism,
-        readonly: options.readonly,
-        flex_index: options.flex_index,
-        scan_wait: options.scan_wait,
-        scan_cap: options.scan_cap,
-        pipeline_batch: options.pipeline_batch,
-        pipeline_cap: options.pipeline_cap,
-        metrics: options.metrics,
-        profile: options.profile,
-        positional_parameters: options.export_positional_parameters,
-        named_parameters: options.export_named_parameters,
-        scope_qualifier: options.scope_qualifier,
-        raw_parameters: options.raw_parameters,
-        scan_consistency: options.scan_consistency,
-        mutation_state: options.mutation_state&.to_a,
-      })
+                                       timeout: options.timeout,
+                                       adhoc: options.adhoc,
+                                       client_context_id: options.client_context_id,
+                                       max_parallelism: options.max_parallelism,
+                                       readonly: options.readonly,
+                                       flex_index: options.flex_index,
+                                       scan_wait: options.scan_wait,
+                                       scan_cap: options.scan_cap,
+                                       pipeline_batch: options.pipeline_batch,
+                                       pipeline_cap: options.pipeline_cap,
+                                       metrics: options.metrics,
+                                       profile: options.profile,
+                                       positional_parameters: options.export_positional_parameters,
+                                       named_parameters: options.export_named_parameters,
+                                       scope_qualifier: options.scope_qualifier,
+                                       raw_parameters: options.raw_parameters,
+                                       scan_consistency: options.scan_consistency,
+                                       mutation_state: (options.mutation_state.to_a if options.mutation_state),
+                                     })
 
       QueryResult.new do |res|
         res.meta_data = QueryMetaData.new do |meta|
@@ -117,15 +117,15 @@ module Couchbase
     # @return [AnalyticsResult]
     def analytics_query(statement, options = AnalyticsOptions.new)
       resp = @backend.document_analytics(statement, {
-        timeout: options.timeout,
-        client_context_id: options.client_context_id,
-        scan_consistency: options.scan_consistency,
-        readonly: options.readonly,
-        priority: options.priority,
-        positional_parameters: options.export_positional_parameters,
-        named_parameters: options.export_named_parameters,
-        raw_parameters: options.raw_parameters,
-      })
+                                           timeout: options.timeout,
+                                           client_context_id: options.client_context_id,
+                                           scan_consistency: options.scan_consistency,
+                                           readonly: options.readonly,
+                                           priority: options.priority,
+                                           positional_parameters: options.export_positional_parameters,
+                                           named_parameters: options.export_named_parameters,
+                                           raw_parameters: options.raw_parameters,
+                                         })
 
       AnalyticsResult.new do |res|
         res.transcoder = options.transcoder
@@ -161,19 +161,19 @@ module Couchbase
     # @return [SearchResult]
     def search_query(index_name, query, options = SearchOptions.new)
       resp = @backend.document_search(index_name, JSON.generate(query), {
-        timeout: options.timeout,
-        limit: options.limit,
-        skip: options.skip,
-        explain: options.explain,
-        disable_scoring: options.disable_scoring,
-        highlight_style: options.highlight_style,
-        highlight_fields: options.highlight_fields,
-        fields: options.fields,
-        sort: options.sort&.map { |v| JSON.generate(v) },
-        facets: options.facets&.map { |(k, v)| [k, JSON.generate(v)] },
-        scan_consistency: options.scan_consistency,
-        mutation_state: options.mutation_state&.to_a,
-      })
+                                        timeout: options.timeout,
+                                        limit: options.limit,
+                                        skip: options.skip,
+                                        explain: options.explain,
+                                        disable_scoring: options.disable_scoring,
+                                        highlight_style: options.highlight_style,
+                                        highlight_fields: options.highlight_fields,
+                                        fields: options.fields,
+                                        sort: (options.sort.map { |v| JSON.generate(v) } if options.sort),
+                                        facets: (options.facets.map { |(k, v)| [k, JSON.generate(v)] } if options.facets),
+                                        scan_consistency: options.scan_consistency,
+                                        mutation_state: (options.mutation_state.to_a if options.mutation_state),
+                                      })
 
       SearchResult.new do |res|
         res.meta_data = SearchMetaData.new do |meta|
@@ -443,20 +443,20 @@ module Couchbase
         raise ArgumentError, "missing username" unless credentials[:username]
         raise ArgumentError, "missing password" unless credentials[:password]
       when ClusterOptions
-        authenticator = options&.authenticator
+        authenticator = options.authenticator if options
         case authenticator
         when PasswordAuthenticator
-          credentials[:username] = authenticator&.username
+          credentials[:username] = authenticator.username if authenticator
           raise ArgumentError, "missing username" unless credentials[:username]
 
-          credentials[:password] = authenticator&.password
+          credentials[:password] = authenticator.password if authenticator
           raise ArgumentError, "missing password" unless credentials[:password]
 
         when CertificateAuthenticator
-          credentials[:certificate_path] = authenticator&.certificate_path
+          credentials[:certificate_path] = authenticator.certificate_path if authenticator
           raise ArgumentError, "missing certificate path" unless credentials[:certificate_path]
 
-          credentials[:key_path] = authenticator&.key_path
+          credentials[:key_path] = authenticator.key_path if authenticator
           raise ArgumentError, "missing key path" unless credentials[:key_path]
 
         else

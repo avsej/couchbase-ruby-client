@@ -133,18 +133,18 @@ module Couchbase
       # @raise [Error::GroupNotFound]
       def upsert_group(group, options = UpsertGroupOptions.new)
         @backend.group_upsert({
-          name: group.name,
-          description: group.description,
-          ldap_group_reference: group.ldap_group_reference,
-          roles: group.roles.map do |role|
-                   {
-                     name: role.name,
-                     bucket: role.bucket,
-                     scope: role.scope,
-                     collection: role.collection,
-                   }
-                 end,
-        }, options.timeout)
+                                name: group.name,
+                                description: group.description,
+                                ldap_group_reference: group.ldap_group_reference,
+                                roles: group.roles.map do |role|
+                                         {
+                                           name: role.name,
+                                           bucket: role.bucket,
+                                           scope: role.scope,
+                                           collection: role.collection,
+                                         }
+                                       end,
+                              }, options.timeout)
       end
 
       # Removes a group

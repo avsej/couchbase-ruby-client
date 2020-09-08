@@ -35,10 +35,10 @@ puts "METHOD 1: using :request_plus"
 
 random_number = rand(0..1_000_000_000)
 collection.upsert("user:#{random_number}", {
-  "name" => %w[Brass Doorknob],
-  "email" => "brass.doorknob@example.com",
-  "data" => random_number,
-})
+                    "name" => %w[Brass Doorknob],
+                    "email" => "brass.doorknob@example.com",
+                    "data" => random_number,
+                  })
 
 options = Cluster::QueryOptions.new
 options.timeout = 10_000
@@ -63,10 +63,10 @@ puts "METHOD 2: using MutationState"
 
 random_number = rand(0..1_000_000_000)
 res = collection.upsert("user:#{random_number}", {
-  "name" => %w[Brass Doorknob],
-  "email" => "brass.doorknob@example.com",
-  "data" => random_number,
-})
+                          "name" => %w[Brass Doorknob],
+                          "email" => "brass.doorknob@example.com",
+                          "data" => random_number,
+                        })
 
 state = MutationState.new(res.mutation_token)
 # state.add(*tokens) could be used to add more tokens

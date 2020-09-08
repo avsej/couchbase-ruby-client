@@ -80,15 +80,15 @@ module Couchbase
       # @return [void]
       def upsert_design_document(document, namespace, options = UpsertDesignDocumentOptions.new)
         @backend.view_index_upsert(@bucket_name, {
-          name: document.name,
-          views: document.views.map do |name, view|
-            {
-              name: name,
-              map: view.map_function,
-              reduce: view.reduce_function,
-            }
-          end,
-        }, namespace, options.timeout)
+                                     name: document.name,
+                                     views: document.views.map do |name, view|
+                                              {
+                                                name: name,
+                                                map: view.map_function,
+                                                reduce: view.reduce_function,
+                                              }
+                                            end,
+                                   }, namespace, options.timeout)
       end
 
       # Removes the design document

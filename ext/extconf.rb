@@ -86,10 +86,10 @@ if ENV["CB_REMOVE_EXT_DIRECTORY"]
   end
   File.truncate("#{ext_directory}/extconf.rb", 0)
   puts "-- truncate #{ext_directory}/extconf.rb"
-  File.write("#{ext_directory}/Makefile", <<~MAKEFILE)
+  File.write("#{ext_directory}/Makefile", <<MAKEFILE)
     .PHONY: all clean install
     all:
     clean:
     install:
-  MAKEFILE
+MAKEFILE
 end

@@ -140,8 +140,8 @@ module Couchbase
     # @return [MutationResult]
     def remove(id, options = RemoveOptions.new)
       resp = @backend.document_remove(bucket_name, "#{@scope_name}.#{@name}", id, options.timeout, {
-        durability_level: options.durability_level,
-      })
+                                        durability_level: options.durability_level,
+                                      })
       MutationResult.new do |res|
         res.cas = resp[:cas]
         res.mutation_token = extract_mutation_token(resp)
@@ -158,9 +158,9 @@ module Couchbase
     def insert(id, content, options = InsertOptions.new)
       blob, flags = options.transcoder.encode(content)
       resp = @backend.document_insert(bucket_name, "#{@scope_name}.#{@name}", id, options.timeout, blob, flags, {
-        durability_level: options.durability_level,
-        expiry: options.expiry,
-      })
+                                        durability_level: options.durability_level,
+                                        expiry: options.expiry,
+                                      })
       MutationResult.new do |res|
         res.cas = resp[:cas]
         res.mutation_token = extract_mutation_token(resp)
@@ -177,9 +177,9 @@ module Couchbase
     def upsert(id, content, options = UpsertOptions.new)
       blob, flags = options.transcoder.encode(content)
       resp = @backend.document_upsert(bucket_name, "#{@scope_name}.#{@name}", id, options.timeout, blob, flags, {
-        durability_level: options.durability_level,
-        expiry: options.expiry,
-      })
+                                        durability_level: options.durability_level,
+                                        expiry: options.expiry,
+                                      })
       MutationResult.new do |res|
         res.cas = resp[:cas]
         res.mutation_token = extract_mutation_token(resp)
@@ -196,10 +196,10 @@ module Couchbase
     def replace(id, content, options = ReplaceOptions.new)
       blob, flags = options.transcoder.encode(content)
       resp = @backend.document_replace(bucket_name, "#{@scope_name}.#{@name}", id, options.timeout, blob, flags, {
-        durability_level: options.durability_level,
-        expiry: options.expiry,
-        cas: options.cas,
-      })
+                                         durability_level: options.durability_level,
+                                         expiry: options.expiry,
+                                         cas: options.cas,
+                                       })
       MutationResult.new do |res|
         res.cas = resp[:cas]
         res.mutation_token = extract_mutation_token(resp)
