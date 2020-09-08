@@ -53,26 +53,26 @@ module Couchbase
     # @return [QueryResult]
     def query(statement, options = Cluster::QueryOptions.new)
       resp = @backend.document_query(statement, {
-        timeout: options.timeout,
-        adhoc: options.adhoc,
-        client_context_id: options.client_context_id,
-        max_parallelism: options.max_parallelism,
-        readonly: options.readonly,
-        scan_wait: options.scan_wait,
-        scan_cap: options.scan_cap,
-        pipeline_batch: options.pipeline_batch,
-        pipeline_cap: options.pipeline_cap,
-        metrics: options.metrics,
-        profile: options.profile,
-        positional_parameters: options.export_positional_parameters,
-        named_parameters: options.export_named_parameters,
-        scope_name: @name,
-        bucket_name: @bucket_name,
-        scope_qualifier: options.scope_qualifier,
-        raw_parameters: options.raw_parameters,
-        scan_consistency: options.scan_consistency,
-        mutation_state: options.mutation_state&.to_a,
-      })
+                                       timeout: options.timeout,
+                                       adhoc: options.adhoc,
+                                       client_context_id: options.client_context_id,
+                                       max_parallelism: options.max_parallelism,
+                                       readonly: options.readonly,
+                                       scan_wait: options.scan_wait,
+                                       scan_cap: options.scan_cap,
+                                       pipeline_batch: options.pipeline_batch,
+                                       pipeline_cap: options.pipeline_cap,
+                                       metrics: options.metrics,
+                                       profile: options.profile,
+                                       positional_parameters: options.export_positional_parameters,
+                                       named_parameters: options.export_named_parameters,
+                                       scope_name: @name,
+                                       bucket_name: @bucket_name,
+                                       scope_qualifier: options.scope_qualifier,
+                                       raw_parameters: options.raw_parameters,
+                                       scan_consistency: options.scan_consistency,
+                                       mutation_state: (options.mutation_state.to_a if options.mutation_state),
+                                     })
 
       Cluster::QueryResult.new do |res|
         res.meta_data = Cluster::QueryMetaData.new do |meta|

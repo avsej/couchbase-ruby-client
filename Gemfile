@@ -20,10 +20,8 @@ gemspec
 gem "rake"
 
 group :development do
-  gem "rubocop"
-  gem "rubocop-minitest"
+  gem "rubocop", '0.68'
   gem "rubocop-performance"
-  gem "standard"
   gem "yard"
   platforms :mri do
     gem "byebug"

@@ -64,13 +64,13 @@ module Couchbase
       # @raise [Error::IndexExists]
       def create_index(bucket_name, index_name, fields, options = CreateIndexOptions.new)
         @backend.query_index_create(bucket_name, index_name, fields, {
-          ignore_if_exists: options.ignore_if_exists,
-          condition: options.condition,
-          deferred: options.deferred,
-          num_replicas: options.num_replicas,
-          scope_name: options.scope_name,
-          collection_name: options.collection_name,
-        }, options.timeout)
+                                      ignore_if_exists: options.ignore_if_exists,
+                                      condition: options.condition,
+                                      deferred: options.deferred,
+                                      num_replicas: options.num_replicas,
+                                      scope_name: options.scope_name,
+                                      collection_name: options.collection_name,
+                                    }, options.timeout)
       end
 
       # Creates new primary index
@@ -84,12 +84,12 @@ module Couchbase
       # @raise [Error::IndexExists]
       def create_primary_index(bucket_name, options = CreatePrimaryIndexOptions.new)
         @backend.query_index_create_primary(bucket_name, {
-          ignore_if_exists: options.ignore_if_exists,
-          deferred: options.deferred,
-          num_replicas: options.num_replicas,
-          scope_name: options.scope_name,
-          collection_name: options.collection_name,
-        }, options.timeout)
+                                              ignore_if_exists: options.ignore_if_exists,
+                                              deferred: options.deferred,
+                                              num_replicas: options.num_replicas,
+                                              scope_name: options.scope_name,
+                                              collection_name: options.collection_name,
+                                            }, options.timeout)
       end
 
       # Drops the index
@@ -104,10 +104,10 @@ module Couchbase
       # @raise [Error::IndexNotFound]
       def drop_index(bucket_name, index_name, options = DropIndexOptions.new)
         @backend.query_index_drop(bucket_name, index_name, {
-          ignore_if_does_not_exist: options.ignore_if_does_not_exist,
-          scope_name: options.scope_name,
-          collection_name: options.collection_name,
-        }, options.timeout)
+                                    ignore_if_does_not_exist: options.ignore_if_does_not_exist,
+                                    scope_name: options.scope_name,
+                                    collection_name: options.collection_name,
+                                  }, options.timeout)
         true
       end
 
@@ -122,11 +122,11 @@ module Couchbase
       # @raise [Error::IndexNotFound]
       def drop_primary_index(bucket_name, options = DropPrimaryIndexOptions.new)
         @backend.query_index_drop_primary(bucket_name, {
-          ignore_if_does_not_exist: options.ignore_if_does_not_exist,
-          index_name: options.index_name,
-          scope_name: options.scope_name,
-          collection_name: options.collection_name,
-        }, options.timeout)
+                                            ignore_if_does_not_exist: options.ignore_if_does_not_exist,
+                                            index_name: options.index_name,
+                                            scope_name: options.scope_name,
+                                            collection_name: options.collection_name,
+                                          }, options.timeout)
         true
       end
 
@@ -153,8 +153,8 @@ module Couchbase
       # @raise [Error::IndexNotFound]
       def watch_indexes(bucket_name, index_names, timeout, options = WatchIndexesOptions.new)
         @backend.query_index_watch(bucket_name, index_names, timeout, {
-          watch_primary: options.watch_primary,
-        })
+                                     watch_primary: options.watch_primary,
+                                   })
       end
 
       class GetAllIndexOptions

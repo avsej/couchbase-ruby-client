@@ -76,9 +76,9 @@ module Couchbase
       doc_id = uniq_id(:foo)
 
       @collection.upsert(doc_id, {
-        "obj" => {},
-        "arr" => [],
-      })
+                           "obj" => {},
+                           "arr" => [],
+                         })
 
       res = @collection.lookup_in(doc_id, [
                                     LookupInSpec.get("obj"),
@@ -229,23 +229,23 @@ module Couchbase
       doc_id = uniq_id(:foo)
 
       @collection.upsert(doc_id, {
-        "mutated" => 0,
-        "body" => "",
-        "first_name" => "James",
-        "age" => 0,
-      })
+                           "mutated" => 0,
+                           "body" => "",
+                           "first_name" => "James",
+                           "age" => 0,
+                         })
 
       res = @collection.mutate_in(doc_id, [
                                     MutateInSpec.upsert("addr", {
-                                      "state" => "NV",
-                                      "pincode" => 7,
-                                      "city" => "Chicago",
-                                    }),
+                                                          "state" => "NV",
+                                                          "pincode" => 7,
+                                                          "city" => "Chicago",
+                                                        }),
                                     MutateInSpec.increment("mutated", 1),
                                     MutateInSpec.upsert("name", {
-                                      "last" => "",
-                                      "first" => "James",
-                                    }),
+                                                          "last" => "",
+                                                          "first" => "James",
+                                                        }),
                                   ])
 
       assert_equal 1, res.content(1)
@@ -255,11 +255,11 @@ module Couchbase
       doc_id = uniq_id(:foo)
 
       @collection.upsert(doc_id, {
-        "mutated" => 0,
-        "body" => "",
-        "first_name" => "James",
-        "age" => 0,
-      })
+                           "mutated" => 0,
+                           "body" => "",
+                           "first_name" => "James",
+                           "age" => 0,
+                         })
 
       res = @collection.mutate_in(doc_id, [
                                     MutateInSpec.increment("mutated", 1),
