@@ -365,20 +365,20 @@ module Couchbase
         raise ArgumentError, "missing username" unless credentials[:username]
         raise ArgumentError, "missing password" unless credentials[:password]
       when Options::Cluster
-        authenticator = options&.authenticator
+        authenticator = options.authenticator if options
         case authenticator
         when PasswordAuthenticator
-          credentials[:username] = authenticator&.username
+          credentials[:username] = authenticator.username if authenticator
           raise ArgumentError, "missing username" unless credentials[:username]
 
-          credentials[:password] = authenticator&.password
+          credentials[:password] = authenticator.password if authenticator
           raise ArgumentError, "missing password" unless credentials[:password]
 
         when CertificateAuthenticator
-          credentials[:certificate_path] = authenticator&.certificate_path
+          credentials[:certificate_path] = authenticator.certificate_path if authenticator
           raise ArgumentError, "missing certificate path" unless credentials[:certificate_path]
 
-          credentials[:key_path] = authenticator&.key_path
+          credentials[:key_path] = authenticator.key_path if authenticator
           raise ArgumentError, "missing key path" unless credentials[:key_path]
 
         else

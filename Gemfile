@@ -26,9 +26,7 @@ group :development do
   gem "minitest"
   gem "minitest-reporters"
   gem "reek"
-  gem "rubocop"
-  gem "rubocop-minitest"
-  gem "rubocop-packaging"
+  gem "rubocop", '0.68'
   gem "rubocop-performance"
   gem "rubocop-rake"
   gem "rubocop-thread_safety"

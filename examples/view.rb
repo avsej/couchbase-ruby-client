@@ -46,9 +46,9 @@ end
 random_number = rand(0..1_000_000_000)
 unique_brewery_id = "random_brewery:#{random_number}"
 collection.upsert("random_brewery:#{random_number}", {
-  "name" => "Random brewery: #{random_number}",
-  "type" => "brewery",
-})
+                    "name" => "Random brewery: #{random_number}",
+                    "type" => "brewery",
+                  })
 puts "\nRequest with consistency. Generated brewery name: #{unique_brewery_id}"
 options = Bucket::ViewOptions.new
 options.start_key = ["random_brewery:"]

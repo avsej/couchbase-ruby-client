@@ -94,7 +94,7 @@ module Couchbase
       # @api private
       # @return [Boolean]
       def need_projected_get?
-        @with_expiry || !@projections&.empty?
+        @with_expiry || (@projections && !@projections.empty?)
       end
 
       # @api private
@@ -103,11 +103,11 @@ module Couchbase
           timeout: @timeout.respond_to?(:in_milliseconds) ? @timeout.public_send(:in_milliseconds) : @timeout,
         }
         options.update(with_expiry: true) if @with_expiry
-        unless @projections&.empty?
+        if @projections && !@projections.empty?
           options.update({
-            projections: @projections,
-            preserve_array_indexes: @preserve_array_indexes,
-          })
+                           projections: @projections,
+                           preserve_array_indexes: @preserve_array_indexes,
+                         })
         end
         options
       end
@@ -1268,13 +1268,13 @@ module Couchbase
       # @api private
       # @return [Array<String>, nil]
       def export_positional_parameters
-        @positional_parameters&.map { |p| JSON.dump(p) }
+        @positional_parameters.map { |p| JSON.dump(p) } if @positional_parameters
       end
 
       # @api private
       # @return [Hash<String => String>, nil]
       def export_named_parameters
-        @named_parameters&.each_with_object({}) { |(n, v), o| o[n.to_s] = JSON.dump(v) }
+        @named_parameters.each_with_object({}) { |(n, v), o| o[n.to_s] = JSON.dump(v) } if @named_parameters
       end
 
       # @api private
@@ -1447,7 +1447,7 @@ module Couchbase
       # @api private
       # @return [Array<String>, nil]
       def export_positional_parameters
-        @positional_parameters&.map { |p| JSON.dump(p) }
+        @positional_parameters.map { |p| JSON.dump(p) } if @positional_parameters
       end
 
       # Sets named parameters for the query
@@ -1461,7 +1461,7 @@ module Couchbase
       # @api private
       # @return [Hash<String => String>, nil]
       def export_named_parameters
-        @named_parameters&.each_with_object({}) { |(n, v), o| o[n.to_s] = JSON.dump(v) }
+        @named_parameters.each_with_object({}) { |(n, v), o| o[n.to_s] = JSON.dump(v) } if @named_parameters
       end
 
       # @api private
@@ -1491,7 +1491,7 @@ module Couchbase
           named_parameters: export_named_parameters,
           raw_parameters: @raw_parameters,
           scan_consistency: @scan_consistency,
-          mutation_state: @mutation_state&.to_a,
+          mutation_state: (@mutation_state.to_a if @mutation_state),
           scope_qualifier: @scope_qualifier,
           scope_name: scope_name,
           bucket_name: bucket_name,
@@ -1613,10 +1613,10 @@ module Couchbase
           highlight_style: @highlight_style,
           highlight_fields: @highlight_fields,
           fields: @fields,
-          sort: @sort&.map { |v| JSON.generate(v) },
-          facets: @facets&.map { |(k, v)| [k, JSON.generate(v)] },
+          sort: (@sort.map { |v| JSON.generate(v) } if @sort),
+          facets: (@facets.map { |(k, v)| [k, JSON.generate(v)] } if @facets),
           scan_consistency: @scan_consistency,
-          mutation_state: @mutation_state&.to_a,
+          mutation_state: (@mutation_state.to_a if @mutation_state),
         }
       end
     end
@@ -1733,7 +1733,7 @@ module Couchbase
           group: @group,
           group_level: @group_level,
           key: (JSON.generate(@key) unless @key.nil?),
-          keys: @keys&.map { |key| JSON.generate(key) },
+          keys: (@keys.map { |key| JSON.generate(key) } if @keys),
           order: @order,
           reduce: @reduce,
           on_error: @on_error,

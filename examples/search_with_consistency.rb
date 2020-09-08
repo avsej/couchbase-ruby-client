@@ -74,10 +74,10 @@ collection = cluster.bucket(bucket_name).default_collection
 # and supply mutation tokens from those operations.
 random_string = ("a".."z").to_a.sample(10).join
 res = collection.upsert("user:#{random_string}", {
-  "name" => "Brass Doorknob",
-  "email" => "brass.doorknob@example.com",
-  "data" => random_string,
-})
+                          "name" => "Brass Doorknob",
+                          "email" => "brass.doorknob@example.com",
+                          "data" => random_string,
+                        })
 
 state = MutationState.new(res.mutation_token)
 # state.add(*tokens) could be used to add more tokens

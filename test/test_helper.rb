@@ -89,8 +89,8 @@ module Couchbase
     # rubocop:disable Minitest/TestMethodName
 
     def uniq_id(name)
-      parent = caller_locations&.first
-      prefix = "#{File.basename(parent&.path, '.rb')}_#{parent&.lineno}"
+      parent = caller_locations.first if caller_locations
+      prefix = "#{File.basename(parent.path, '.rb')}_#{parent.lineno}" if parent
       "#{prefix}_#{name}_#{Time.now.to_f.to_s.reverse}"
     end
 

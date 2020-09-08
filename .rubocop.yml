@@ -1,13 +1,11 @@
 inherit_from: .rubocop_todo.yml
 require:
-  - rubocop-minitest
-  - rubocop-packaging
   - rubocop-performance
   - rubocop-rake
   - rubocop-thread_safety
 
 AllCops:
-  TargetRubyVersion: 2.5
+  TargetRubyVersion: 2.2
 
 Metrics/ParameterLists:
   Max: 30
@@ -39,6 +37,9 @@ Style/TrailingCommaInArrayLiteral:
 
 Style/TrailingCommaInHashLiteral:
   EnforcedStyleForMultiline: comma
+
+Style/BracesAroundHashParameters:
+  Enabled: false
 
 Layout/FirstHashElementIndentation:
   EnforcedStyle: consistent
