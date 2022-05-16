@@ -75,13 +75,7 @@ module Couchbase
              else
                @backend.document_get(bucket_name, @scope_name, @name, id, options.to_backend)
              end
-      GetResult.new do |res|
-        res.transcoder = options.transcoder
-        res.cas = resp[:cas]
-        res.flags = resp[:flags]
-        res.encoded = resp[:content]
-        res.expiry = resp[:expiry] if resp.key?(:expiry)
-      end
+      GetResult.new(resp, options.transcoder)
     end
 
     # Fetches multiple documents from the collection.
@@ -100,15 +94,7 @@ module Couchbase
     # @return [Array<GetResult>]
     def get_multi(ids, options = Options::GetMulti.new)
       resp = @backend.document_get_multi(ids.map { |id| [bucket_name, @scope_name, @name, id] }, options.to_backend)
-      resp.map do |entry|
-        GetResult.new do |res|
-          res.transcoder = options.transcoder
-          res.cas = entry[:cas]
-          res.flags = entry[:flags]
-          res.encoded = entry[:content]
-          res.error = entry[:error]
-        end
-      end
+      resp.map { |entry| GetResult.new(entry, options.transcoder) }
     end
 
     # Fetches the full document and write-locks it for the given duration
@@ -131,12 +117,7 @@ module Couchbase
       resp = @backend.document_get_and_lock(bucket_name, @scope_name, @name, id,
                                             lock_time.respond_to?(:in_seconds) ? lock_time.public_send(:in_seconds) : lock_time,
                                             options.to_backend)
-      GetResult.new do |res|
-        res.transcoder = options.transcoder
-        res.cas = resp[:cas]
-        res.flags = resp[:flags]
-        res.encoded = resp[:content]
-      end
+      GetResult.new(resp, options.transcoder)
     end
 
     # Fetches a full document and resets its expiration time to the duration provided
@@ -153,12 +134,7 @@ module Couchbase
       resp = @backend.document_get_and_touch(bucket_name, @scope_name, @name, id,
                                              Utils::Time.extract_expiry_time(expiry),
                                              options.to_backend)
-      GetResult.new do |res|
-        res.transcoder = options.transcoder
-        res.cas = resp[:cas]
-        res.flags = resp[:flags]
-        res.encoded = resp[:content]
-      end
+      GetResult.new(resp, options.transcoder)
     end
 
     # Reads from all available replicas and the active node and returns the results

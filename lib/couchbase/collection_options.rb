@@ -55,10 +55,16 @@ module Couchbase
         Time.at(@expiry) if @expiry
       end
 
+      # @param [JsonTranscoder, #decode(String, Integer)] transcoder
+      # @param [Hash] response payload returned by the backend
       # @yieldparam [GetResult] self
-      def initialize
-        @expiry = nil
-        @error = nil
+      def initialize(response, transcoder)
+        @transcoder = transcoder
+        @cas = response[:cas]
+        @flags = response[:flags]
+        @encoded = response[:content]
+        @expiry = response[:expiry] if response.key?(:expiry)
+        @error = response[:error] if response.key?(:error)
         yield self if block_given?
       end
 
@@ -74,6 +80,7 @@ module Couchbase
       def expiry # rubocop:disable Style/TrivialAccessors will be removed in next major release
         @expiry
       end
+
       deprecate :expiry, :expiry_time, 2021, 1
     end
 
