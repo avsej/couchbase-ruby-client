@@ -73,6 +73,7 @@ cmake_flags << "-DENABLE_SANITIZER_UNDEFINED_BEHAVIOUR=ON" if ENV["CB_UBSAN"]
 
 cc = ENV["CB_CC"]
 cxx = ENV["CB_CXX"]
+ar = ENV["CB_AR"]
 
 case RbConfig::CONFIG["target_os"]
 when /darwin/
@@ -98,6 +99,7 @@ end
 
 cmake_flags << "-DCMAKE_C_COMPILER=#{cc}" if cc
 cmake_flags << "-DCMAKE_CXX_COMPILER=#{cxx}" if cxx
+cmake_flags << "-DCMAKE_AR=#{ar}" if ar
 
 project_path = File.expand_path(File.join(__dir__))
 build_dir = ENV['CB_EXT_BUILD_DIR'] ||

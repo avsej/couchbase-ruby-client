@@ -70,16 +70,18 @@ then
     else
       source $(brew --prefix chruby)/share/chruby/chruby.sh
     fi
-    for v in 13 12 11
-    do
-        cc_prefix=$(brew --prefix gcc@${v})
-        if [ -d ${cc_prefix} ]
-        then
-            export CB_CC="${cc_prefix}/bin/gcc-${v}"
-            export CB_CXX="${cc_prefix}/bin/g++-${v}"
-            break
-        fi
-    done
+#   # MacOS has issues building BoringSSL using GCC compiler
+#   for v in 13 12 11
+#   do
+#       cc_prefix=$(brew --prefix gcc@${v})
+#       if [ -d ${cc_prefix} ]
+#       then
+#           export CB_CC="${cc_prefix}/bin/gcc-${v}"
+#           export CB_CXX="${cc_prefix}/bin/g++-${v}"
+#           export CB_AR="${cc_prefix}/bin/gcc-ar-${v}"
+#           break
+#       fi
+#   done
 fi
 
 CB_GEM_INSTALL_OPTIONS=
@@ -114,15 +116,8 @@ then
   gem_compiler_plugin=$(ruby -rrubygems -e "puts Gem.find_files('rubygems_plugin.rb').grep(/gem-compiler/)")
   CB_GEM_COMPILE="ruby -rrubygems -r${gem_compiler_plugin} -S gem compile"
 fi
-if [ "$(uname -s)" = "Linux" ]
-then
-    strip --version
-    if [ "x${IS_RELEASE}" = "xtrue" ]
-    then
-        CB_GEM_COMPILE="${CB_GEM_COMPILE} --strip"
-    fi
-fi
 
+export CB_STATIC_BORINGSSL=1
 export CB_REMOVE_EXT_DIRECTORY=1
 if [ ! -f /etc/alpine-release ]
 then

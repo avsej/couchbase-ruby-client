@@ -273,6 +273,13 @@ init_versions(VALUE mCouchbase)
 
     VALUE cb_BuildInfo = rb_hash_new();
     rb_const_set(mCouchbase, rb_intern("BUILD_INFO"), cb_BuildInfo);
+#if defined(HAVE_RUBY_VERSION_H)
+    rb_hash_aset(
+      cb_BuildInfo,
+      rb_id2sym(rb_intern("ruby_abi")),
+      rb_str_freeze(cb_str_new(fmt::format("{}.{}.{}", RUBY_API_VERSION_MAJOR, RUBY_API_VERSION_MINOR, RUBY_API_VERSION_TEENY))));
+#endif
+    rb_hash_aset(cb_BuildInfo, rb_id2sym(rb_intern("revision")), rb_str_freeze(rb_str_new_cstr(EXT_GIT_REVISION)));
     rb_hash_aset(cb_BuildInfo, rb_id2sym(rb_intern("ruby_librubyarg")), rb_str_freeze(rb_str_new_cstr(RUBY_LIBRUBYARG)));
     rb_hash_aset(cb_BuildInfo, rb_id2sym(rb_intern("ruby_include_dir")), rb_str_freeze(rb_str_new_cstr(RUBY_INCLUDE_DIR)));
     rb_hash_aset(cb_BuildInfo, rb_id2sym(rb_intern("ruby_library_dir")), rb_str_freeze(rb_str_new_cstr(RUBY_LIBRARY_DIR)));

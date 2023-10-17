@@ -47,6 +47,7 @@ Gem::Specification.new do |spec|
     "ext/CMakeLists.txt",
     "ext/couchbase/CMakeLists.txt",
     "ext/couchbase/LICENSE.txt",
+    "ext/couchbase/bin/build_boringssl*",
     "ext/couchbase/cmake/*",
     "ext/couchbase/core/**/*",
     "ext/couchbase/couchbase/**/*",
