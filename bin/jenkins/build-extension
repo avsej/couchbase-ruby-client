@@ -41,7 +41,7 @@ then
   then
       export CB_CC="/usr/bin/gcc"
       export CB_CXX="/usr/bin/g++"
-  elif [ ! "${OS_ID}" = "ubuntu" ]
+  elif [ "${OS_ID}" != "ubuntu" -a  "${OS_ID}" != "pop" ]
   then
       export PATH="$(realpath ~/.cmake-3.21.2/bin):$PATH"
       if [ "${OS_ID}" = "amzn" ]
@@ -70,9 +70,16 @@ then
     else
       source $(brew --prefix chruby)/share/chruby/chruby.sh
     fi
-    cc_prefix=$(brew --prefix gcc@11)
-    export CB_CC="${cc_prefix}/bin/gcc-11"
-    export CB_CXX="${cc_prefix}/bin/g++-11"
+    for v in 13 12 11
+    do
+        cc_prefix=$(brew --prefix gcc@${v})
+        if [ -d ${cc_prefix} ]
+        then
+            export CB_CC="${cc_prefix}/bin/gcc-${v}"
+            export CB_CXX="${cc_prefix}/bin/g++-${v}"
+            break
+        fi
+    done
 fi
 
 CB_GEM_INSTALL_OPTIONS=
@@ -98,7 +105,7 @@ ${PROJECT_ROOT}/bin/jenkins/patch-version ${BUILD_NUMBER}
 bundle exec rake build
 full_version=$(ruby -r${PROJECT_ROOT}/lib/couchbase/version.rb -e "puts Couchbase::VERSION[:sdk]")
 source="${PROJECT_ROOT}/pkg/couchbase-${full_version}.gem"
-precompiled="${PROJECT_ROOT}/pkg/binary"
+precompiled="${PROJECT_ROOT}/pkg/binary/$(ruby -rrbconfig -e 'print RbConfig::CONFIG["ruby_version"]')"
 mkdir -p ${precompiled}
 
 CB_GEM_COMPILE="gem compile"
@@ -122,7 +129,5 @@ then
     export CB_STATIC_STDLIB=1
 fi
 ${CB_GEM_COMPILE} --prune --verbose --output ${precompiled} ${source}
-ruby -rrbconfig -rfileutils \
-     -e 'FileUtils.mv(ARGV[0], ARGV[0].gsub(/\.gem$/, "-#{RbConfig::CONFIG["ruby_version"]}.gem"))' \
-     ${precompiled}/*.gem
+
 ls -lh ${precompiled}/*.gem

@@ -59,8 +59,12 @@ cmake_flags = [
 revisions_path = File.join(__dir__, "revisions.rb")
 eval(File.read(revisions_path)) if File.exist?(revisions_path) # rubocop:disable Security/Eval
 
+if ENV["CB_STATIC"] || ENV["CB_STATIC_BORINGSSL"]
+  cmake_flags << "-DCOUCHBASE_CXX_CLIENT_STATIC_BORINGSSL=ON"
+elsif ENV["CB_STATIC_OPENSSL"]
+  cmake_flags << "-DCOUCHBASE_CXX_CLIENT_STATIC_OPENSSL=ON"
+end
 cmake_flags << "-DCOUCHBASE_CXX_CLIENT_STATIC_STDLIB=ON" if ENV["CB_STATIC"] || ENV["CB_STATIC_STDLIB"]
-cmake_flags << "-DCOUCHBASE_CXX_CLIENT_STATIC_OPENSSL=ON" if ENV["CB_STATIC"] || ENV["CB_STATIC_OPENSSL"]
 cmake_flags << "-DENABLE_SANITIZER_ADDRESS=ON" if ENV["CB_ASAN"]
 cmake_flags << "-DENABLE_SANITIZER_LEAK=ON" if ENV["CB_LSAN"]
 cmake_flags << "-DENABLE_SANITIZER_MEMORY=ON" if ENV["CB_MSAN"]
