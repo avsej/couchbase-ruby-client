@@ -21,6 +21,18 @@ require "couchbase/version"
 
 SDK_VERSION = Couchbase::VERSION[:sdk]
 
+case RbConfig::CONFIG["target_os"]
+when /mingw/
+  require "ruby_installer/runtime"
+  # ridk install 1
+  # ridk install 3
+  # ridk exec pacman --sync --noconfirm mingw-w64-ucrt-x86_64-ninja mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-go
+  ENV["CB_STATIC_BORINGSSL"] = "true"
+  ENV["CB_STATIC_STDLIB"] = "true"
+  ENV["GOROOT"] = File.join(RubyInstaller::Runtime.msys2_installation.msys_path, "ucrt64/lib/go")
+else
+end
+
 def check_version(name)
   executable = find_executable(name)
   version = nil
@@ -90,11 +102,8 @@ when /mingw/
   RubyInstaller::Runtime.enable_msys_apps
   cc = RbConfig::CONFIG["CC"]
   cxx = RbConfig::CONFIG["CXX"]
-  cmake_flags << "-G MSYS Makefiles"
+  cmake_flags << "-G Ninja"
   cmake_flags << "-DRUBY_LIBRUBY=#{File.basename(RbConfig::CONFIG["LIBRUBY_SO"], ".#{RbConfig::CONFIG["SOEXT"]}")}"
-  # ridk install 1
-  # ridk install 3
-  # ridk exec pacman -S --noconfirm mingw-w64-ucrt-x86_64-openssl
 end
 
 cmake_flags << "-DCMAKE_C_COMPILER=#{cc}" if cc

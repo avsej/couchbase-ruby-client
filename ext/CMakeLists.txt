@@ -1,10 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 project(ruby_client LANGUAGES CXX)
 
-if(WIN32)
-  add_definitions(-D_WIN32_WINNT=0x0601)
-endif()
-
 if(RUBY_HDR_DIR)
   set(RUBY_INCLUDE_DIR ${RUBY_HDR_DIR} ${RUBY_ARCH_HDR_DIR})
 else()
@@ -51,6 +47,8 @@ target_link_libraries(
   PRIVATE project_options
           project_warnings
           couchbase_cxx_client
+	  asio
+	  Microsoft.GSL::GSL
           snappy)
 if(RUBY_LIBRUBY)
   target_link_directories(couchbase PRIVATE "${RUBY_LIBRARY_DIR}")
