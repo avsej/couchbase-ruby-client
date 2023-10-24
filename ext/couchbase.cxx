@@ -2072,7 +2072,7 @@ cb_Backend_open(VALUE self, VALUE connection_string, VALUE credentials, VALUE op
         }
 
         origin.options().user_agent_extra =
-          fmt::format("ruby_sdk/{};ssl/{:x}", std::string(EXT_GIT_REVISION).substr(0, 8), OpenSSL_version_num());
+          fmt::format("ruby_sdk/{}", std::string(EXT_GIT_REVISION).substr(0, 8));
 #if defined(HAVE_RUBY_VERSION_H)
         origin.options().user_agent_extra.append(
           fmt::format(";ruby_abi/{}.{}.{}", RUBY_API_VERSION_MAJOR, RUBY_API_VERSION_MINOR, RUBY_API_VERSION_TEENY));
