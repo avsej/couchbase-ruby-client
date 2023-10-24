@@ -47,8 +47,8 @@ target_link_libraries(
   PRIVATE project_options
           project_warnings
           couchbase_cxx_client
-	  asio
-	  Microsoft.GSL::GSL
+          asio
+          Microsoft.GSL::GSL
           snappy)
 if(RUBY_LIBRUBY)
   target_link_directories(couchbase PRIVATE "${RUBY_LIBRARY_DIR}")
