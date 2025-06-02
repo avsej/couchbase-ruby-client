@@ -1,0 +1,37 @@
+From ba51d4a58ef06f885cd3ee7e97737bfed075319d Mon Sep 17 00:00:00 2001
+From: Sergey Avseyev <sergey.avseyev@gmail.com>
+Date: Tue, 12 Mar 2024 20:41:16 -0700
+Subject: [PATCH] Use WSAConnect when socket has been created by WSASocket
+
+Otherwise it is possible that the ::connect() might return
+code
+
+  10038 An operation was attempted on something that is not a socket.
+
+In particular it happens when trying to use ASIO inside Ruby native
+extension on Windows (which is using MinGW).
+---
+ asio/include/asio/detail/impl/socket_ops.ipp | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/asio/include/asio/detail/impl/socket_ops.ipp b/asio/include/asio/detail/impl/socket_ops.ipp
+index 2d756f42e..8c8236b8c 100644
+--- a/asio/include/asio/detail/impl/socket_ops.ipp
++++ b/asio/include/asio/detail/impl/socket_ops.ipp
+@@ -467,8 +467,13 @@ template <typename SockLenType>
+ inline int call_connect(SockLenType msghdr::*,
+     socket_type s, const void* addr, std::size_t addrlen)
+ {
++#if defined(ASIO_WINDOWS) || defined(__CYGWIN__)
++  return ::WSAConnect(s, static_cast<const socket_addr_type*>(addr),
++      (SockLenType)addrlen, 0, 0, 0, 0);
++#else
+   return ::connect(s, static_cast<const socket_addr_type*>(addr),
+       (SockLenType)addrlen);
++#endif
+ }
+ 
+ int connect(socket_type s, const void* addr,
+-- 
+2.43.0.windows.1
+

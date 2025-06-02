@@ -91,3 +91,16 @@ endif()
 if(APPLE)
   target_link_libraries(couchbase PRIVATE -Wl,-undefined,dynamic_lookup)
 endif()
+
+if(MINGW)
+  target_link_libraries(couchbase PRIVATE ws2_32.lib)
+  set(asio_PATCH "${PROJECT_SOURCE_DIR}/cmake/0001-Use-WSAConnect-when-socket-has-been-created-by-WSASo.patch")
+  message("Applying ${asio_PATCH} in ${CPM_PACKAGE_asio_SOURCE_DIR} for MinGW gcc")
+  execute_process(
+    COMMAND patch --input ${asio_PATCH} --ignore-whitespace --strip=1 --forward
+    WORKING_DIRECTORY ${CPM_PACKAGE_asio_SOURCE_DIR}
+    RESULT_VARIABLE PATCH_RESULT)
+  if(PATCH_RESULT GREATER 1)
+      message(FATAL_ERROR "Failed to apply patch to ASIO. Failed with: ${PATCH_RESULT}.")
+  endif()
+endif()
