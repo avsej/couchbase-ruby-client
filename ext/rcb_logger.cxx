@@ -311,6 +311,7 @@ flush_logger()
 void
 init_logger_methods(VALUE cBackend)
 {
+  rb_set_end_proc([](VALUE) {}, Qnil);
   rb_define_singleton_method(cBackend, "set_log_level", cb_Backend_set_log_level, 1);
   rb_define_singleton_method(cBackend, "get_log_level", cb_Backend_get_log_level, 0);
   rb_define_singleton_method(cBackend, "install_logger_shim", cb_Backend_install_logger_shim, 2);
