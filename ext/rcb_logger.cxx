@@ -413,38 +413,6 @@ init_logger_methods(VALUE cBackend)
   // A failed flush leaves messages queued. At exit, flush again after a failure that is an
   // ordinary exception; a message is consumed after its second failure, so the loop ends. A signal,
   // exit, throw or thread kill stops the loop and is re-raised for the end-proc runner.
-  rb_set_end_proc(
-    [](VALUE) {
-      // The swallowed exception must not replace the $! the exit started with, which the logger
-      // sees on the next attempt. rb_set_errinfo accepts only nil or an Exception.
-      VALUE exit_error = rb_errinfo();
-      bool restorable = NIL_P(exit_error) || (RB_TYPE_P(exit_error, T_OBJECT) &&
-                                              RTEST(rb_obj_is_kind_of(exit_error, rb_eException)));
-      int state = 0;
-      for (;;) {
-        rb_protect(
-          [](VALUE) -> VALUE {
-            flush_logger();
-            return Qnil;
-          },
-          Qnil,
-          &state);
-        if (state != 0) {
-          VALUE error = rb_errinfo();
-          if (!RB_TYPE_P(error, T_OBJECT) || RTEST(rb_obj_is_kind_of(error, rb_eSignal)) ||
-              RTEST(rb_obj_is_kind_of(error, rb_eSystemExit))) {
-            rb_jump_tag(state);
-          }
-        }
-        if (restorable) {
-          rb_set_errinfo(exit_error);
-        }
-        if (state == 0) {
-          return;
-        }
-      }
-    },
-    Qnil);
   rb_define_singleton_method(cBackend, "set_log_level", cb_Backend_set_log_level, 1);
   rb_define_singleton_method(cBackend, "get_log_level", cb_Backend_get_log_level, 0);
   rb_define_singleton_method(
